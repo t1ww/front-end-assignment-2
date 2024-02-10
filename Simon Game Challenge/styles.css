@@ -51,3 +51,8 @@ body {
   box-shadow: 0 0 20px white;
   background-color: grey;
 }
+
+/* button hover */
+div[type="button"]:hover {
+  cursor: pointer;
+}
