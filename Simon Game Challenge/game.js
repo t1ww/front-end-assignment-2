@@ -1,22 +1,44 @@
 // write code here
 // hi
-alert("hello welcome to simon game");
+// alert("hello welcome to simon game");
 // setting
 Audio.volume = 0.1;
 
 // variables
 var started = false;
+var starting = false;
 var level = 0;
+// arrays
 const buttonColors = ["red", "blue", "green", "yellow"];
 var randomChosenColour = null;
 var gamePattern = [];
 var userChosenColour = null;
 var userClickedPattern = [];
 
+var buttonDivs = document.querySelectorAll('div[type="button"]');
 /// functions
 Array.prototype.random = function () {
     return this[Math.floor(Math.random() * this.length)];
-};
+}
+Array.prototype.print = function () {
+    var str = "";
+    this.forEach((element) => {
+        str += element + ",";
+    });
+    console.log(str);
+}
+
+function buttonDivsSetPressed(){
+    buttonDivs.forEach(function (div) {
+        div.classList.add('pressed');
+    });
+}
+function buttonDivsRemovePressed(){
+    buttonDivs.forEach(function (div) {
+        div.classList.remove('pressed');
+    });
+}
+//
 function fadeInOut(element, duration) {
     // Fade in
     element.style.opacity = 0;
@@ -38,13 +60,8 @@ function fadeInOut(element, duration) {
         }
     }, duration / 10);
 }
-Array.prototype.print = function () {
-    var str = "";
-    this.forEach((element) => {
-        str += element + ",";
-    });
-    console.log(str);
-};
+
+
 // keypress
 window.addEventListener(
     "keydown",
@@ -52,7 +69,7 @@ window.addEventListener(
         if (e.key === "r") {
             startOver();
         }
-        if (started === false && e.key === "s") {
+        if (started === false && level === 0 && e.key === "s") {
             gameStart();
         }
     },
@@ -66,31 +83,34 @@ function playAudioColor(color) {
 /// game functions
 function startOver() {
     started = false;
+    starting = false;
     level = 0;
     gamePattern = [];
     userClickedPattern = [];
     document.getElementById("level-title").innerHTML = `Press S Key to Start`;
+    buttonDivsRemovePressed();
 }
 function gameStart() {
+    if(starting) return;
+    starting = true;
     // change title to game start
     document.getElementById("level-title").innerHTML = `game starting, Good Luck C;`;
-    buttonDivs.forEach(function (div) {
-        div.classList.add('pressed');
-    });
+    buttonDivsSetPressed();
     // start sequence
     setTimeout(() => {
+        if(started || level > 0) return; // dont run if already started
         // reset
         started = true;
-        buttonDivs.forEach(function (div) {
-            div.classList.remove('pressed');
-        });
+        buttonDivsRemovePressed();
         // start sequence
         nextSequence();
     }, 1000);
 }
 function gameOver() {
-    document.body.classList.add('game-over');
     started = false;
+    // set effects
+    buttonDivsSetPressed();
+    document.body.classList.add('game-over');
     new Audio(`./sounds/wrong.mp3`).play();
     document.getElementById("level-title").innerHTML = `Game Over, Press R Key to Restart`;
     setTimeout(() => {
@@ -116,6 +136,7 @@ function animatePress(buttonId) {
         buttonClassList.add("pressed");
     }
     setTimeout(() => {
+        if (!started) return; // dont run if game already over
         buttonClassList.remove("pressed");
     }, 300);
 }
@@ -141,7 +162,6 @@ function checkAnswer() {
 }
 
 /// buttons handling
-var buttonDivs = document.querySelectorAll('div[type="button"]');
 // Add click event listener to each matching div
 buttonDivs.forEach(function (div) {
     div.onclick = function () {
