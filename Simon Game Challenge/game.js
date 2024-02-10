@@ -66,6 +66,9 @@ function playAudioColor(color) {
 /// game functions
 function startOver() {
     started = false;
+    level = 0;
+    gamePattern = [];
+    userClickedPattern = [];
     document.getElementById("level-title").innerHTML = `Press S Key to Start`;
 }
 function gameStart() {
@@ -77,10 +80,7 @@ function gameStart() {
     // start sequence
     setTimeout(() => {
         // reset
-        level = 0;
         started = true;
-        gamePattern = [];
-        userClickedPattern = [];
         buttonDivs.forEach(function (div) {
             div.classList.remove('pressed');
         });
