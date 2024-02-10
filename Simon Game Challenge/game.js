@@ -5,13 +5,13 @@ alert("hello welcome to simon game");
 Audio.volume = 0.1;
 
 // variables
-const buttonColors = ["red", "blue", "green", "yellow"];
-var gamePattern = [];
-var userClickedPattern = [];
-var level = 0;
 var started = false;
-var userChosenColour = null;
+var level = 0;
+const buttonColors = ["red", "blue", "green", "yellow"];
 var randomChosenColour = null;
+var gamePattern = [];
+var userChosenColour = null;
+var userClickedPattern = [];
 
 /// functions
 Array.prototype.random = function () {
@@ -38,12 +38,19 @@ function fadeInOut(element, duration) {
         }
     }, duration / 10);
 }
+Array.prototype.print = function () {
+    var str = "";
+    this.forEach((element) => {
+        str += element + ",";
+    });
+    console.log(str);
+};
 // keypress
 window.addEventListener(
     "keydown",
     function (e) {
         if (e.key === "r") {
-            gameStart();
+            startOver();
         }
         if (started === false && e.key === "s") {
             gameStart();
@@ -57,26 +64,80 @@ function playAudioColor(color) {
     a.play();
 }
 /// game functions
+function startOver() {
+    started = false;
+    document.getElementById("level-title").innerHTML = `Press S Key to Start`;
+}
 function gameStart() {
-    // reset
-    level = 0;
-    started = true;
     // change title to game start
-    document.getElementById("level-title").innerHTML = `game started | level : ${level.toString()}`;
+    document.getElementById("level-title").innerHTML = `game starting, Good Luck C;`;
+    buttonDivs.forEach(function (div) {
+        div.classList.add('pressed');
+    });
     // start sequence
-    nextSequence();
+    setTimeout(() => {
+        // reset
+        level = 0;
+        started = true;
+        gamePattern = [];
+        userClickedPattern = [];
+        buttonDivs.forEach(function (div) {
+            div.classList.remove('pressed');
+        });
+        // start sequence
+        nextSequence();
+    }, 1000);
+}
+function gameOver() {
+    document.body.classList.add('game-over');
+    started = false;
+    new Audio(`./sounds/wrong.mp3`).play();
+    document.getElementById("level-title").innerHTML = `Game Over, Press R Key to Restart`;
+    setTimeout(() => {
+        document.body.classList.remove('game-over');
+    }, 1000);
 }
 function nextSequence() {
     level++; // next level
     // set title level
-    document.getElementById("level-title").innerHTML = `game started | level : ${level.toString()}`;
+    document.getElementById("level-title").innerHTML = `level : ${level.toString()}`;
     userClickedPattern = []; // reset pattern
     // random the next pattern
     randomChosenColour = buttonColors.random();
-    playAudioColor(randomChosenColour);
-    fadeInOut(document.getElementById(randomChosenColour), 3000);
+    buttonClicked(randomChosenColour);
     // push sequence
     gamePattern.push(randomChosenColour);
+    gamePattern.print();
+}
+/// game logic
+function animatePress(buttonId) {
+    let buttonClassList = document.getElementById(buttonId).classList;
+    if (!buttonClassList.contains("pressed")) {
+        buttonClassList.add("pressed");
+    }
+    setTimeout(() => {
+        buttonClassList.remove("pressed");
+    }, 300);
+}
+function checkAnswer() {
+    // add userChosencolor
+    userClickedPattern.push(userChosenColour);
+    // check if clicked pattern is the subset of gamepattern
+    let correct_order = true;
+    userClickedPattern.forEach(function (element, index) {
+        if (element !== gamePattern[index]) {
+            correct_order = false;
+        }
+    });
+    if (!correct_order) {
+        gameOver();
+    }
+    if (userClickedPattern.length === gamePattern.length) {
+        setTimeout(() => {
+            if (!started) return; // dont run if game already over
+            nextSequence();
+        }, 1200);
+    }
 }
 
 /// buttons handling
@@ -84,11 +145,21 @@ var buttonDivs = document.querySelectorAll('div[type="button"]');
 // Add click event listener to each matching div
 buttonDivs.forEach(function (div) {
     div.onclick = function () {
-        buttonClicked(div.id);
+        userButtonClick(div.id);
     };
 });
 function buttonClicked(buttonId) {
-    // Your custom function logic goes here
+    // select the color
+    userChosenColour = buttonId;
+    // button pressing effects
+    animatePress(buttonId);
     playAudioColor(buttonId);
     fadeInOut(document.getElementById(buttonId), 1800);
+}
+function userButtonClick(buttonId) {
+    if (!started) return; // dont run if not started
+    buttonClicked(buttonId);
+    console.log(`user clicked ${buttonId}`);
+    // checking for answer
+    checkAnswer();
 }
